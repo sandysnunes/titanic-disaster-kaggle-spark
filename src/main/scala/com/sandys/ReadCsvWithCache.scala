@@ -1,6 +1,7 @@
 package com.sandys
 
 import org.apache.spark.ml.feature.{OneHotEncoder, StringIndexer}
+import org.apache.spark.mllib.linalg
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
@@ -34,30 +35,33 @@ object ReadCsvWithCache {
       .rdd
       .map(row => {
         val valueByField = row.getValuesMap(fieldNames)
-        val classe = valueByField(Survived).asInstanceOf[String].toDouble
 
-        val vector = Vectors.dense(
-          valueByField(Pclass).asInstanceOf[String].toDouble,
-          valueByField(Sex).asInstanceOf[String] match {
-            case "female" => 0.0
-            case "male" => 1.0
-          },
-          valueByField(Age).asInstanceOf[String].toDouble,
-          valueByField(SibSp).asInstanceOf[String].toDouble,
-          valueByField(Parch).asInstanceOf[String].toDouble,
-          valueByField(Fare).asInstanceOf[String].toDouble,
-          //valueByField(Cabin).asInstanceOf[String].toDouble
-          valueByField(Embarked).asInstanceOf[String] match {
-            case "C" => 0.0
-            case "S" => 1.0
-            case "Q" => 2.0
-          }
-        )
+        val _class = valueByField(Survived).asInstanceOf[String].toDouble
+        val vectorFeatures = contructVector(valueByField)
 
-        LabeledPoint(classe, vector)
+        LabeledPoint(_class, vectorFeatures)
       })
       .cache()
   }
 
 
+  private def contructVector(valueByField: Map[String, Nothing]): linalg.Vector = {
+    Vectors.dense(
+      valueByField(Pclass).asInstanceOf[String].toDouble,
+      valueByField(Sex).asInstanceOf[String] match {
+        case "female" => 0.0
+        case "male" => 1.0
+      },
+      valueByField(Age).asInstanceOf[String].toDouble,
+      valueByField(SibSp).asInstanceOf[String].toDouble,
+      valueByField(Parch).asInstanceOf[String].toDouble,
+      valueByField(Fare).asInstanceOf[String].toDouble,
+      //valueByField(Cabin).asInstanceOf[String].toDouble
+      valueByField(Embarked).asInstanceOf[String] match {
+        case "C" => 0.0
+        case "S" => 1.0
+        case "Q" => 2.0
+      }
+    )
+  }
 }
