@@ -1,11 +1,11 @@
 package com.sandys
 
-import org.apache.spark.mllib.classification.{LogisticRegressionModel, LogisticRegressionWithLBFGS, SVMModel, SVMWithSGD}
-import org.apache.spark.mllib.evaluation.{BinaryClassificationMetrics, MulticlassMetrics}
+import org.apache.spark.SparkConf
+import org.apache.spark.ml.classification.RandomForestClassifier
+import org.apache.spark.mllib.classification.{LogisticRegressionWithLBFGS, NaiveBayes, NaiveBayesModel}
+import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.mllib.util.MLUtils
-import org.apache.spark.sql.{DataFrame, Encoders, SQLContext, SparkSession}
+import org.apache.spark.sql.SparkSession
 
 /**
  * https://www.kaggle.com/c/titanic/data
@@ -35,5 +35,17 @@ object TitanicDisaster extends App {
   val metrics = new MulticlassMetrics(predictionAndLabels)
   println(s"Accuracy = ${metrics.accuracy}")
 
+  //----------------------------------------------------------------------
+  // Train a NaiveBayes model.
+  val nvModel: NaiveBayesModel = new NaiveBayes().run(training)
+
+  val nVpredictionAndLabels = test.map { case LabeledPoint(label, features) =>
+    val prediction = nvModel.predict(features)
+    (prediction, label)
+  }
+
+  // Get evaluation metrics.
+  val nvMetrics = new MulticlassMetrics(nVpredictionAndLabels)
+  println(s"Accuracy = ${nvMetrics.accuracy}")
 
 }
