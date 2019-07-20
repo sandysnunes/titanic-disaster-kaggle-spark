@@ -6,8 +6,6 @@ import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{Row, SparkSession}
 
-import scala.util.matching.Regex
-
 object ReadCsvWithCache {
 
   private val PassengerId = "PassengerId"
@@ -25,23 +23,19 @@ object ReadCsvWithCache {
 
   def apply(spark: SparkSession, path: String): RDD[LabeledPoint] = {
 
-    val df = spark.read
+    val dataFrame = spark.read
       .option("header", "true")
       .csv(path)
 
-    df.rdd
-      .filter( r => r.getAs(Age) != null)
-      .filter( r => r.getAs(Embarked) != null)
-      .filter( r => r.getAs(Fare) != null)
-      .map(row => {
-        LabeledPoint(row.getAs[String](Survived).toDouble, contructVector(row))
-      })
+    dataFrame.rdd
+      .filter(row => row.getAs(Age) != null)
+      .filter(row => row.getAs(Embarked) != null)
+      .filter(row => row.getAs(Fare) != null)
+      .map(row => LabeledPoint(row.getAs[String](Survived).toDouble, contructFeaturesVector(row)))
       .cache()
   }
 
-
-  private def contructVector(row: Row): linalg.Vector = {
-    /*val pattern = new Regex("")*/
+  private def contructFeaturesVector(row: Row): linalg.Vector = {
 
     Vectors.dense(
       row.getAs[String](Pclass).toDouble,
@@ -53,15 +47,13 @@ object ReadCsvWithCache {
       row.getAs[String](SibSp).toDouble,
       row.getAs[String](Parch).toDouble,
       row.getAs[String](Fare).toDouble,
-     /* Some(row.getAs[String](Cabin))
-        .map(c => pattern.findAllIn(c).group(1))
-        .getOrElse(0.0),*/
       row.getAs[String](Embarked) match {
         case "C" => 0.0
         case "S" => 1.0
         case "Q" => 2.0
       }
     )
+
   }
 }
 
