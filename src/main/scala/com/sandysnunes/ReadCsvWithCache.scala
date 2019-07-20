@@ -1,4 +1,4 @@
-package com.sandys
+package com.sandysnunes
 
 import org.apache.spark.mllib.linalg
 import org.apache.spark.mllib.linalg.Vectors

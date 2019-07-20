@@ -1,6 +1,5 @@
-package com.sandys
+package com.sandysnunes
 
-import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.mllib.classification.LogisticRegressionWithLBFGS
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
@@ -12,20 +11,12 @@ import org.apache.spark.sql.SparkSession
  */
 object TitanicDisaster extends App {
 
-  Logger.getLogger("org.apache.spark").setLevel(Level.ERROR)
-  Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
-
-  val trainingPath = "src/main/resource/train.csv"
-  val testPath = "src/main/resource/test.csv"
-
   val conf: SparkConf = new SparkConf().setAppName("TitanicDisaster").setMaster("local[*]")
-
   val session: SparkSession = SparkSession.builder().config(conf).getOrCreate()
 
   //leitura e pré-processamento dos dados
-  val training = ReadCsvWithCache(session, trainingPath)
-  val test = ReadCsvWithCache(session, testPath)
-
+  val training = ReadCsvWithCache(session, "src/main/resource/train.csv")
+  val test = ReadCsvWithCache(session, "src/main/resource/test.csv")
 
   val logisticRegression = new LogisticRegressionWithLBFGS().setNumClasses(2)
   val model = logisticRegression.run(training)
