@@ -21,7 +21,7 @@ object ReadCsvWithCache {
   private val Cabin = "Cabin"
   private val Embarked = "Embarked"
 
-  def apply(spark: SparkSession, path: String): RDD[LabeledPoint] = {
+  def apply(spark: SparkSession, path: String): RDD[(Int, LabeledPoint)] = {
 
     val dataFrame = spark.read
       .option("header", "true")
@@ -31,7 +31,7 @@ object ReadCsvWithCache {
       .filter(row => row.getAs(Age) != null)
       .filter(row => row.getAs(Embarked) != null)
       .filter(row => row.getAs(Fare) != null)
-      .map(row => LabeledPoint(row.getAs[String](Survived).toDouble, contructFeaturesVector(row)))
+      .map(row => (row.getAs[String](PassengerId).toInt, LabeledPoint(row.getAs[String](Survived).toDouble, contructFeaturesVector(row))))
       .cache()
   }
 
